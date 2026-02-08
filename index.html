@@ -27,18 +27,33 @@
         .coord-display { color: #d4af37; font-weight: bold; background: #000; padding: 4px 10px; border-radius: 4px; min-width: 45px; display: inline-block; border: 1px solid rgba(212, 175, 55, 0.3); }
         .btn-main { background: linear-gradient(to bottom, #d4af37, #a88a2d); color: #000; font-weight: bold; cursor: pointer; border: none; padding: 12px 30px; border-radius: 6px; font-size: 16px; transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); margin-top: 10px; }
         #status { margin-top: 15px; font-weight: bold; min-height: 1.2em; }
-        /* マトリックス部分は省略せず保持 */
+
         .matrix-container { position: relative; margin: 40px auto; }
-        .matrix-board { position: relative; width: min(90vw, 600px); aspect-ratio: 1/1; background-color: #fff; border: 2px solid #d4af37; overflow: visible; touch-action: none; }
+        
+        /* 格子（グリッド）付きのボード */
+        .matrix-board { 
+            position: relative; width: min(90vw, 600px); aspect-ratio: 1/1; 
+            border: 2px solid #d4af37;
+            background-color: #ffffff; 
+            /* 格子線の設定 */
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), 
+                linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 5% 5%; 
+            overflow: visible; touch-action: none;
+        }
+
         .axis-label { position: absolute; font-size: 12px; font-weight: bold; color: #fff; background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 20px; border: 1px solid #d4af37; white-space: nowrap; z-index: 5; }
         .label-top { top: -35px; left: 50%; transform: translateX(-50%); }
         .label-bottom { bottom: -35px; left: 50%; transform: translateX(-50%); }
         .label-left { left: -85px; top: 50%; transform: translateY(-50%); }
         .label-right { right: -85px; top: 50%; transform: translateY(-50%); }
+
         .bottle { position: absolute; transform: translate(-50%, -50%); text-align: center; width: 80px; z-index: 10; pointer-events: none; }
         .bottle img { width: 45px; height: auto; }
-        .label { display: inline-block; background: rgba(20,20,20,0.9); color: #d4af37; font-size: 11px; padding: 3px 6px; border-radius: 4px; margin-top: 5px; border: 1px solid rgba(212,175,55,0.5); }
-        .drag-target { cursor: move; pointer-events: auto !important; }
+        .label { display: inline-block; background: rgba(20,20,20,0.9); color: #d4af37; font-size: 11px; padding: 3px 6px; border-radius: 4px; margin-top: 5px; border: 1px solid rgba(212, 175, 55, 0.5); white-space: nowrap; }
+        .drag-target { cursor: move; pointer-events: auto !important; z-index: 100; }
+        .drag-target img { width: 55px; border: 2px dashed #d4af37; border-radius: 50%; padding: 5px; background: rgba(212,175,55,0.2); box-shadow: 0 0 20px rgba(212,175,55,0.4); }
     </style>
 </head>
 <body>
@@ -70,9 +85,12 @@
 <div class="matrix-container">
     <div class="axis-label label-top">SMOKY</div><div class="axis-label label-bottom">DELICATE</div><div class="axis-label label-left">LIGHT</div><div class="axis-label label-right">RICH</div>
     <div class='matrix-board' id="board" onmousemove="drag(event)" onmouseup="stopDrag()" ontouchmove="touchDrag(event)" ontouchend="stopDrag()">
+        <div style="position:absolute; width:100%; height:1px; top:50%; left:0; background:rgba(0,0,0,0.15); z-index:1;"></div>
+        <div style="position:absolute; height:100%; width:1px; left:50%; top:0; background:rgba(0,0,0,0.15); z-index:1;"></div>
+        
         <div id="drag-bottle" class="bottle drag-target" style="left:50%; top:50%;" onmousedown="startDrag(event)" ontouchstart="startDrag(event)">
             <img src="JAPANESE/sample-Bottle.png" onerror="this.src='https://via.placeholder.com/45x90?text=Bottle'">
-            <span class='label' style="background:#d4af37; color:#000; font-weight:bold;">★ 調整中</span>
+            <span class='label' style="background:#d4af37; color:#000; font-weight:bold;">★ 入力銘柄</span>
         </div>
     </div>
 </div>
@@ -102,7 +120,7 @@
 
     function addAndSend() {
         const brand = document.getElementById('in-brand').value;
-        const user = document.getElementById('in-user').value || "匿名";
+        const user = document.getElementById('in-user').value || "匿名"; //
         const abv = document.getElementById('in-abv').value;
         const note = document.getElementById('in-note').value;
         const statusEl = document.getElementById('status');
@@ -125,9 +143,10 @@
             statusEl.style.color = "#00ff00";
             statusEl.innerText = "✅ 送信完了: " + brand;
             document.getElementById('in-brand').value = "";
+            document.getElementById('in-note').value = "";
         }).catch(err => {
             statusEl.style.color = "#ff4444";
-            statusEl.innerText = "❌ エラー：GASの設定を確認してください";
+            statusEl.innerText = "❌ エラーが発生しました";
         });
     }
 
