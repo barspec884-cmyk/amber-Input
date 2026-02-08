@@ -11,7 +11,7 @@
             color: #eee; font-family: sans-serif; overflow-x: hidden; 
         }
         .admin-panel { 
-            background: rgba(34, 34, 34, 0.8); backdrop-filter: blur(10px);
+            background: rgba(34, 34, 34, 0.85); backdrop-filter: blur(10px);
             padding: 20px; border-radius: 12px; margin: 15px; 
             border: 1px solid rgba(212, 175, 55, 0.4); 
             width: 95vw; max-width: 800px; box-sizing: border-box; z-index: 1000; 
@@ -22,38 +22,36 @@
         input:focus, select:focus { border-color: #d4af37; }
         #in-user { width: 120px; }
         #in-brand { width: 180px; }
-        #in-abv { width: 60px; }
         #in-note { width: 90%; max-width: 500px; }
         .coord-display { color: #d4af37; font-weight: bold; background: #000; padding: 4px 10px; border-radius: 4px; min-width: 45px; display: inline-block; border: 1px solid rgba(212, 175, 55, 0.3); }
         .btn-main { background: linear-gradient(to bottom, #d4af37, #a88a2d); color: #000; font-weight: bold; cursor: pointer; border: none; padding: 12px 30px; border-radius: 6px; font-size: 16px; transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); margin-top: 10px; }
         #status { margin-top: 15px; font-weight: bold; min-height: 1.2em; }
 
         .matrix-container { position: relative; margin: 40px auto; }
-        
-        /* 格子（グリッド）付きのボード */
         .matrix-board { 
             position: relative; width: min(90vw, 600px); aspect-ratio: 1/1; 
-            border: 2px solid #d4af37;
-            background-color: #ffffff; 
-            /* 格子線の設定 */
-            background-image: 
-                linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), 
-                linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
-            background-size: 5% 5%; 
-            overflow: visible; touch-action: none;
+            border: 2px solid #d4af37; background-color: #ffffff; 
+            background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 5% 5%; overflow: visible; touch-action: none;
         }
 
-        .axis-label { position: absolute; font-size: 12px; font-weight: bold; color: #fff; background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 20px; border: 1px solid #d4af37; white-space: nowrap; z-index: 5; }
+        .axis-label { position: absolute; font-size: 11px; font-weight: bold; color: #fff; background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 20px; border: 1px solid #d4af37; white-space: nowrap; z-index: 5; }
         .label-top { top: -35px; left: 50%; transform: translateX(-50%); }
         .label-bottom { bottom: -35px; left: 50%; transform: translateX(-50%); }
-        .label-left { left: -85px; top: 50%; transform: translateY(-50%); }
-        .label-right { right: -85px; top: 50%; transform: translateY(-50%); }
+        .label-left { left: -80px; top: 50%; transform: translateY(-50%); }
+        .label-right { right: -80px; top: 50%; transform: translateY(-50%); }
 
         .bottle { position: absolute; transform: translate(-50%, -50%); text-align: center; width: 80px; z-index: 10; pointer-events: none; }
         .bottle img { width: 45px; height: auto; }
         .label { display: inline-block; background: rgba(20,20,20,0.9); color: #d4af37; font-size: 11px; padding: 3px 6px; border-radius: 4px; margin-top: 5px; border: 1px solid rgba(212, 175, 55, 0.5); white-space: nowrap; }
+        
+        /* 入力銘柄（動かすやつ） */
         .drag-target { cursor: move; pointer-events: auto !important; z-index: 100; }
         .drag-target img { width: 55px; border: 2px dashed #d4af37; border-radius: 50%; padding: 5px; background: rgba(212,175,55,0.2); box-shadow: 0 0 20px rgba(212,175,55,0.4); }
+
+        /* Benchmark（山崎）の薄い表示 */
+        .benchmark-overlay { opacity: 0.15; filter: grayscale(1); z-index: 1; }
+        .benchmark-label { background: transparent !important; color: #aaa !important; border: none !important; font-style: italic; }
     </style>
 </head>
 <body>
@@ -63,14 +61,13 @@
     <div class='input-row'>
         <select id="in-role" onchange="toggleOtherInput()">
             <option value="愛好家">愛好家</option>
-            <option value="作り手">作り手</option>
-            <option value="バーテンダー">バーテンダー</option>
+            <option value="蒸留家">蒸留家</option> <option value="バーテンダー">バーテンダー</option>
             <option value="その他">その他</option>
         </select>
         <input type="text" id="in-role-other" placeholder="具体的な属性" style="display:none;">
         <input type="text" id="in-user" placeholder="名前(任意)" onchange="saveUser()">
         <input type="text" id="in-brand" placeholder="銘柄名(必須)">
-        <input type="number" id="in-abv" value="43" step="0.1"> <span style="font-size:12px; color:#d4af37;">%</span>
+        <input type="number" id="in-abv" value="43" step="0.1" style="width:60px;"> <span style="font-size:12px; color:#d4af37;">%</span>
     </div>
     <div class='input-row'>
         <input type="text" id="in-note" placeholder="Recommend（任意）">
@@ -88,6 +85,11 @@
         <div style="position:absolute; width:100%; height:1px; top:50%; left:0; background:rgba(0,0,0,0.15); z-index:1;"></div>
         <div style="position:absolute; height:100%; width:1px; left:50%; top:0; background:rgba(0,0,0,0.15); z-index:1;"></div>
         
+        <div class="bottle benchmark-overlay" style="left:50%; top:50%;">
+            <img src="JAPANESE/yamazaki.png" onerror="this.src='https://via.placeholder.com/45x90?text=Yamazaki'">
+            <span class='label benchmark-label'>Benchmark</span>
+        </div>
+
         <div id="drag-bottle" class="bottle drag-target" style="left:50%; top:50%;" onmousedown="startDrag(event)" ontouchstart="startDrag(event)">
             <img src="JAPANESE/sample-Bottle.png" onerror="this.src='https://via.placeholder.com/45x90?text=Bottle'">
             <span class='label' style="background:#d4af37; color:#000; font-weight:bold;">★ 入力銘柄</span>
@@ -120,7 +122,7 @@
 
     function addAndSend() {
         const brand = document.getElementById('in-brand').value;
-        const user = document.getElementById('in-user').value || "匿名"; //
+        const user = document.getElementById('in-user').value || "匿名";
         const abv = document.getElementById('in-abv').value;
         const note = document.getElementById('in-note').value;
         const statusEl = document.getElementById('status');
