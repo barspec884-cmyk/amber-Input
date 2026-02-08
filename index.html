@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang='ja'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'>
+    <title>Bar SPEC - Admin Input</title>
+    <style>
+        body { 
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; 
+            background: radial-gradient(circle at center, #8b6b23 0%, #1a1200 100%); 
+            color: #eee; font-family: sans-serif; overflow-x: hidden; 
+        }
+
+        .admin-panel { 
+            background: rgba(34, 34, 34, 0.8); backdrop-filter: blur(10px);
+            padding: 20px; border-radius: 12px; margin: 15px; 
+            border: 1px solid rgba(212, 175, 55, 0.4); 
+            width: 95vw; max-width: 800px; box-sizing: border-box; z-index: 1000; 
+            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .input-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; justify-content: center; }
+        
+        input, select { 
+            background: rgba(0, 0, 0, 0.5); color: #fff; border: 1px solid #555; 
+            padding: 10px; border-radius: 6px; font-size: 16px; outline: none;
+        }
+        input:focus, select:focus { border-color: #d4af37; }
+        
+        #in-user { width: 100px; }
+        #in-role { width: 130px; }
+        #in-role-other { width: 130px; border-color: #d4af37; background: rgba(212,175,55,0.1); } /* 自由入力用を目立たせる */
+        #in-brand { width: 180px; }
+        #in-abv { width: 60px; }
+        #in-note { width: 90%; max-width: 500px; }
+
+        .coord-display { 
+            color: #d4af37; font-weight: bold; background: #000; 
+            padding: 4px 10px; border-radius: 4px; min-width: 45px; 
+            display: inline-block; border: 1px solid rgba(212,175,55,0.3);
+        }
+
+        .btn-main { 
+            background: linear-gradient(to bottom, #d4af37, #a88a2d); color: #000; 
+            font-weight: bold; cursor: pointer; border: none; padding: 12px 30px; 
+            border-radius: 6px; font-size: 16px; transition: 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); margin-top: 10px;
+        }
+        
+        .matrix-container { position: relative; margin: 40px auto; }
+        .matrix-board { 
+            position: relative; width: min(90vw, 600px); aspect-ratio: 1/1;
+            background-color: #fff; background-image: linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 5% 5%, 5% 5%; border: 2px solid #d4af37; overflow: visible; touch-action: none; box-shadow: 0 0 40px rgba(0,0,0,0.8);
+        }
+        .axis-label { position: absolute; font-size: 12px; font-weight: bold; color: #fff; background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 20px; border: 1px solid #d4af37; white-space: nowrap; z-index: 5; }
+        .label-top { top: -35px; left: 50%; transform: translateX(-50%); }
+        .label-bottom { bottom: -35px; left: 50%; transform: translateX(-50%); }
+        .label-left { left: -85px; top: 50%; transform: translateY(-50%); }
+        .label-right { right: -85px; top: 50%; transform: translateY(-50%); }
+        .center-line { position: absolute; background: rgba(0,0,0,0.15); z-index: 1; }
+        .bottle { position: absolute; transform: translate(-50%, -50%); text-align: center; width: 80px; z-index: 10; pointer-events: none; }
+        .bottle img { width: 45px; height: auto; display: block; margin: 0 auto; filter: drop-shadow(0 5px 12px rgba(0,0,0,0.4)); }
+        .label { display: inline-block; background: rgba(20,20,20,0.9); color: #d4af37; font-size: 11px; padding: 3px 6px; border-radius: 4px; margin-top: 5px; border: 1px solid rgba(212,175,55,0.5); white-space: nowrap; }
+        .drag-target { cursor: move; pointer-events: auto !important; z-index: 100; }
+        .drag-target img { width: 55px; border: 2px dashed #d4af37; border-radius: 50%; padding: 5px; background: rgba(212,175,55,0.2); box-shadow: 0 0 20px rgba(212,175,55,0.4); }
+    </style>
+</head>
+<body>
+
+<div class='admin-panel'>
+    <strong style="color:#d4af37; display:block; margin-bottom:10px; font-size: 1.2em; letter-spacing: 2px;">【Bar SPEC】DATA INPUT</strong>
+    
+    <div class='input-row'>
+        <select id="in-role" onchange="toggleOtherInput()">
+            <option value="愛好家">愛好家</option>
+            <option value="作り手">作り手</option>
+            <option value="営業">営業</option>
+            <option value="蒸留所関係者">蒸留所関係者</option>
+            <option value="バーテンダー">バーテンダー</option>
+            <option value="酒販店/専門職">酒販店/専門職</option>
+            <option value="その他">その他</option>
+        </select>
+        
+        <input type="text" id="in-role-other" placeholder="具体的な属性" style="display:none;">
+
+        <input type="text" id="in-user" placeholder="名前" onchange="saveUser()">
+        <input type="text" id="in-brand" placeholder="ウイスキー銘柄名">
+        <input type="number" id="in-abv" value="43" step="0.1"> <span style="font-size:12px; color:#d4af37;">%</span>
+    </div>
+
+    <div class='input-row'>
+        <input type="text" id="in-note" placeholder="Recommend（任意入力）">
+    </div>
+
+    <div class='input-row'>
+        <div style="font-size:14px; margin-right:15px;">
+            Rich(X): <span id="xl-x" class="coord-display">0</span> 
+            Smoky(Y): <span id="xl-y" class="coord-display">0</span>
+        </div>
+        <button class="btn-main" onclick="addAndSend()">データを送信</button>
+    </div>
+
+</div>
+
+<div class="matrix-container">
+    <div class="axis-label label-top">SMOKY</div>
+    <div class="axis-label label-bottom">DELICATE</div>
+    <div class="axis-label label-left">LIGHT</div>
+    <div class="axis-label label-right">RICH</div>
+
+    <div class='matrix-board' id="board" onmousemove="drag(event)" onmouseup="stopDrag()" ontouchmove="touchDrag(event)" ontouchend="stopDrag()">
+        <div class="center-line" style="width:100%; height:1px; top:50%; left:0;"></div>
+        <div class="center-line" style="height:100%; width:1px; left:50%; top:0;"></div>
+        <div class='bottle' style='left:50%; top:50%; opacity: 0.4;'><img src='JAPANESE/yamazaki.png'><span class='label'>山崎 (0,0)</span></div>
+        <div id="drag-bottle" class="bottle drag-target" style="left:50%; top:50%;" onmousedown="startDrag(event)" ontouchstart="startDrag(event)">
+            <img src="JAPANESE/sample-Bottle.png">
+            <span class='label' style="background:#d4af37; color:#000; font-weight:bold;">★ 入力ボトル</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    let isDragging = false, webX = 50, webY = 50, xlRich = 0, xlSmoky = 0;
+    
+    // GASのURLをここにセットしてください
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbx51HrKxlznQvPRSHvCa__Vgof6QBY1jsKHl2e4RtoAIhlBWHBH6Srq36hiQy0G2xB_tQ/exec";
+
+    // 「その他」の入力欄を表示・非表示にする関数
+    function toggleOtherInput() {
+        const roleSel = document.getElementById('in-role');
+        const otherInput = document.getElementById('in-role-other');
+        // 「その他」が選ばれた時だけ表示する
+        if (roleSel.value === "その他") {
+            otherInput.style.display = "inline-block";
+        } else {
+            otherInput.style.display = "none";
+            otherInput.value = ""; // 隠す時は中身を消す
+        }
+    }
+
+    function startDrag(e) { isDragging = true; if(e.cancelable) e.preventDefault(); document.getElementById('status').innerText = "調整中..."; }
+    function stopDrag() { isDragging = false; document.getElementById('status').innerText = "位置を確定しました。"; }
+    function touchDrag(e) { if(isDragging && e.touches.length > 0) updatePos(e.touches[0].clientX, e.touches[0].clientY); }
+    function drag(e) { updatePos(e.clientX, e.clientY); }
+
+    function updatePos(clientX, clientY) {
+        if (!isDragging) return;
+        const board = document.getElementById('board'), rect = board.getBoundingClientRect();
+        webX = Math.max(0, Math.min(100, (((clientX - rect.left) / rect.width) * 100)));
+        webY = Math.max(0, Math.min(100, (((clientY - rect.top) / rect.height) * 100)));
+        xlRich = Math.round(webX - 50);
+        xlSmoky = Math.round(50 - webY); 
+        const d = document.getElementById('drag-bottle');
+        d.style.left = webX + '%'; d.style.top = webY + '%';
+        document.getElementById('xl-x').innerText = xlRich; 
+        document.getElementById('xl-y').innerText = xlSmoky;
+    }
+
+    function addAndSend() {
+        const brand = document.getElementById('in-brand').value;
+        const user = document.getElementById('in-user').value;
+        const abv = document.getElementById('in-abv').value;
+        const note = document.getElementById('in-note').value;
+        
+        // ロールの決定
+        let role = document.getElementById('in-role').value;
+        const otherRole = document.getElementById('in-role-other').value;
+        if (role === "その他" && otherRole) {
+            role = otherRole; // 自由入力があればそちらを採用
+        }
+
+        if(!brand) { alert("銘柄名を入力してください"); return; }
+        
+        document.getElementById('status').innerText = "送信中...";
+
+        const payload = {
+            role: role,
+            user: user,
+            brand: brand,
+            abv: abv,
+            rich: xlRich,
+            smoky: xlSmoky,
+            note: note,
+            image: ""
+        };
+
+        fetch(GAS_URL, {
+            method: "POST",
+            mode: "no-cors", 
+            body: JSON.stringify(payload)
+        }).then(() => {
+            document.getElementById('status').innerText = "✅ スプレッドシートへ送信完了: " + brand;
+            document.getElementById('in-brand').value = "";
+            document.getElementById('in-note').value = "";
+        }).catch(err => {
+            document.getElementById('status').innerText = "❌ 送信エラー";
+            console.error(err);
+        });
+    }
+
+    function saveUser() { localStorage.setItem('spec_user', document.getElementById('in-user').value); }
+    window.onload = () => {
+        const savedUser = localStorage.getItem('spec_user');
+        if(savedUser) document.getElementById('in-user').value = savedUser;
+    }
+</script>
+</body>
+</html>
