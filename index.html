@@ -62,7 +62,7 @@
             <option value="その他">その他</option>
         </select>
         <input type="text" id="in-role-other" placeholder="具体的な属性" style="display:none;">
-        <input type="text" id="in-user" placeholder="名前" onchange="saveUser()">
+        <input type="text" id="in-user" placeholder="名前 (任意)" onchange="saveUser()">
         <input type="text" id="in-brand" placeholder="ウイスキー銘柄名">
         <input type="number" id="in-abv" value="43" step="0.1"> <span style="font-size:12px; color:#d4af37;">%</span>
     </div>
@@ -99,7 +99,6 @@
 
 <script>
     let isDragging = false, webX = 50, webY = 50, xlRich = 0, xlSmoky = 0;
-    // GASのURL
     const GAS_URL = "https://script.google.com/macros/s/AKfycbx51HrKxlznQvPRSHvCa__Vgof6QBY1jsKHl2e4RtoAIhlBWHBH6Srq36hiQy0G2xB_tQ/exec";
 
     function toggleOtherInput() {
@@ -129,7 +128,7 @@
 
     function addAndSend() {
         const brand = document.getElementById('in-brand').value;
-        const user = document.getElementById('in-user').value;
+        const user = document.getElementById('in-user').value || "匿名"; // 空なら"匿名"にする
         const abv = document.getElementById('in-abv').value;
         const note = document.getElementById('in-note').value;
         const statusEl = document.getElementById('status');
@@ -138,8 +137,7 @@
         const otherRole = document.getElementById('in-role-other').value;
         if (role === "その他" && otherRole) role = otherRole;
 
-        // 名前と銘柄名を必須にするチェック
-        if(!brand || !user) { alert("「名前」と「銘柄名」を両方入力してください"); return; }
+        if(!brand) { alert("銘柄名を入力してください"); return; }
         
         statusEl.style.color = "#d4af37";
         statusEl.innerText = "⏳ スプレッドシートへ送信中...";
@@ -158,7 +156,7 @@
             document.getElementById('in-note').value = "";
         }).catch(err => {
             statusEl.style.color = "#ff4444";
-            statusEl.innerText = "❌ エラーが発生しました。再試行してください。";
+            statusEl.innerText = "❌ 送信に失敗しました";
             console.error(err);
         });
     }
