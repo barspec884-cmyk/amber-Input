@@ -12,7 +12,8 @@
         }
         .admin-panel { 
             background: rgba(34, 34, 34, 0.85); backdrop-filter: blur(10px);
-            padding: 20px; border-radius: 12px; margin: 15px; 
+            padding: 20px 20px 10px; /* 下のパディングを少し調整 */
+            border-radius: 12px; margin: 15px; 
             border: 1px solid rgba(212, 175, 55, 0.4); 
             width: 95vw; max-width: 800px; box-sizing: border-box; z-index: 1000; 
             text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
@@ -22,12 +23,16 @@
         input:focus, select:focus { border-color: #d4af37; }
         #in-user { width: 120px; }
         #in-brand { width: 180px; }
+        #in-abv { width: 60px; }
         #in-note { width: 90%; max-width: 500px; }
         .coord-display { color: #d4af37; font-weight: bold; background: #000; padding: 4px 10px; border-radius: 4px; min-width: 45px; display: inline-block; border: 1px solid rgba(212, 175, 55, 0.3); }
-        .btn-main { background: linear-gradient(to bottom, #d4af37, #a88a2d); color: #000; font-weight: bold; cursor: pointer; border: none; padding: 12px 30px; border-radius: 6px; font-size: 16px; transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); margin-top: 10px; }
-        #status { margin-top: 15px; font-weight: bold; min-height: 1.2em; }
+        .btn-main { background: linear-gradient(to bottom, #d4af37, #a88a2d); color: #000; font-weight: bold; cursor: pointer; border: none; padding: 12px 30px; border-radius: 6px; font-size: 16px; transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); margin-top: 5px; }
+        #status { margin-top: 10px; font-weight: bold; min-height: 1.2em; font-size: 14px; }
+        
+        /* 利用規約の注釈スタイル */
+        .terms-note { font-size: 10px; color: rgba(212, 175, 55, 0.7); margin: 8px 0 0; line-height: 1.3; }
 
-        .matrix-container { position: relative; margin: 40px auto; }
+        .matrix-container { position: relative; margin: 30px auto 50px; }
         .matrix-board { 
             position: relative; width: min(90vw, 600px); aspect-ratio: 1/1; 
             border: 2px solid #d4af37; background-color: #ffffff; 
@@ -45,11 +50,8 @@
         .bottle img { width: 45px; height: auto; }
         .label { display: inline-block; background: rgba(20,20,20,0.9); color: #d4af37; font-size: 11px; padding: 3px 6px; border-radius: 4px; margin-top: 5px; border: 1px solid rgba(212, 175, 55, 0.5); white-space: nowrap; }
         
-        /* 入力銘柄（動かすやつ） */
         .drag-target { cursor: move; pointer-events: auto !important; z-index: 100; }
         .drag-target img { width: 55px; border: 2px dashed #d4af37; border-radius: 50%; padding: 5px; background: rgba(212,175,55,0.2); box-shadow: 0 0 20px rgba(212,175,55,0.4); }
-
-        /* Benchmark（山崎）の薄い表示 */
         .benchmark-overlay { opacity: 0.15; filter: grayscale(1); z-index: 1; }
         .benchmark-label { background: transparent !important; color: #aaa !important; border: none !important; font-style: italic; }
     </style>
@@ -61,7 +63,8 @@
     <div class='input-row'>
         <select id="in-role" onchange="toggleOtherInput()">
             <option value="愛好家">愛好家</option>
-            <option value="蒸留家">蒸留家</option> <option value="バーテンダー">バーテンダー</option>
+            <option value="蒸留家">蒸留家</option>
+            <option value="バーテンダー">バーテンダー</option>
             <option value="その他">その他</option>
         </select>
         <input type="text" id="in-role-other" placeholder="具体的な属性" style="display:none;">
@@ -72,10 +75,15 @@
     <div class='input-row'>
         <input type="text" id="in-note" placeholder="Recommend（任意）">
     </div>
-    <div class='input-row'>
-        <div style="font-size:14px; margin-right:15px;">Rich(X): <span id="xl-x" class="coord-display">0</span> Smoky(Y): <span id="xl-y" class="coord-display">0</span></div>
+    
+    <div style="margin-top: 5px;">
+        <div style="font-size:14px; margin-bottom: 5px;">Rich(X): <span id="xl-x" class="coord-display">0</span> Smoky(Y): <span id="xl-y" class="coord-display">0</span></div>
         <button class="btn-main" onclick="addAndSend()">データを送信</button>
+        <p class="terms-note">
+            ※投稿データはBar SPECの活動（Web・印刷物等）に利用させていただく場合がございます。<br>送信をもって同意とみなします。
+        </p>
     </div>
+    
     <div id="status"></div>
 </div>
 
@@ -99,8 +107,8 @@
 
 <script>
     let isDragging = false, webX = 50, webY = 50, xlRich = 0, xlSmoky = 0;
-// 77行目付近にあるこの部分を書き換え
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxOyZZfvdOWhTfdjVlNBkDk6axBYHb6RoZU9MSGG8dlo58CU46NUfAjY1BF_-6LZAEFog/exec";
+    // 最新のGAS URL（蒸留家即時アップ対応版）
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxOyZZfvdOWhTfdjVlNBkDk6axBYHb6RoZU9MSGG8dlo58CU46NUfAjY1BF_-6LZAEFog/exec";
 
     function toggleOtherInput() {
         const sel = document.getElementById('in-role'), other = document.getElementById('in-role-other');
