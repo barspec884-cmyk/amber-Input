@@ -59,8 +59,8 @@
             width: 40px; border: 2px dashed #d4af37; border-radius: 50%; 
             padding: 3px; background: rgba(212,175,55,0.2); box-shadow: 0 0 20px rgba(212,175,55,0.4); 
         }
-        .benchmark-overlay { opacity: 0.15; filter: grayscale(1); z-index: 1; }
-        .benchmark-label { background: transparent !important; color: #aaa !important; border: none !important; font-style: italic; }
+.benchmark-overlay { opacity: 0.15; filter: grayscale(1); z-index: 1; } /* ←ここを書き換え */
+.benchmark-label { background: transparent !important; color: #aaa !important; border: none !important; font-style: italic; }
     </style>
 </head>
 <body>
@@ -99,7 +99,7 @@
             </div>
             <div id="drag-bottle" class="bottle drag-target" style="left:50%; top:50%;" onmousedown="startDrag(event)" ontouchstart="startDrag(event)">
                 <img src="JAPANESE/sample-Bottle.png" onerror="this.src='https://via.placeholder.com/45x90?text=Bottle'">
-                <span class='label' style="background:#d4af37; color:#000; font-weight:bold;">★ 狙う位置</span>
+                <span class='label' style="background:#d4af37; color:#000; font-weight:bold;">★入力Bottle</span>
             </div>
         </div>
     </div>
