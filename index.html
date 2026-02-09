@@ -7,13 +7,12 @@
     <style>
         body { 
             display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; 
-            background: radial-gradient(circle at center, #8b6b23 0%, #1a1200 100%); 
+            background: radial-gradient(circle at center, #3d2f0a 0%, #000000 100%); 
             color: #eee; font-family: sans-serif; overflow-x: hidden; 
         }
         .admin-panel { 
             background: rgba(34, 34, 34, 0.85); backdrop-filter: blur(10px);
-            padding: 20px 20px 10px; /* 下のパディングを少し調整 */
-            border-radius: 12px; margin: 15px; 
+            padding: 20px 20px 10px; border-radius: 12px; margin: 15px; 
             border: 1px solid rgba(212, 175, 55, 0.4); 
             width: 95vw; max-width: 800px; box-sizing: border-box; z-index: 1000; 
             text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
@@ -29,143 +28,127 @@
         .btn-main { background: linear-gradient(to bottom, #d4af37, #a88a2d); color: #000; font-weight: bold; cursor: pointer; border: none; padding: 12px 30px; border-radius: 6px; font-size: 16px; transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); margin-top: 5px; }
         #status { margin-top: 10px; font-weight: bold; min-height: 1.2em; font-size: 14px; }
         
-        /* 利用規約の注釈スタイル */
         .terms-note { font-size: 10px; color: rgba(212, 175, 55, 0.7); margin: 8px 0 0; line-height: 1.3; }
 
         .matrix-container { position: relative; margin: 30px auto 50px; }
         .matrix-board { 
             position: relative; width: min(90vw, 600px); aspect-ratio: 1/1; 
-            border: 2px solid #d4af37; background-color: #ffffff; 
-            background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
-            background-size: 5% 5%; overflow: visible; touch-action: none;
+            border: 2px solid #d4af37; background-color: #fdf5e6; 
+            background-image: linear-gradient(rgba(184, 134, 11, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(184, 134, 11, 0.08) 1px, transparent 1px);
+            background-size: 5% 5%; overflow: hidden; touch-action: none;
         }
 
-        .axis-label { position: absolute; font-size: 11px; font-weight: bold; color: #fff; background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 20px; border: 1px solid #d4af37; white-space: nowrap; z-index: 5; }
-        .label-top { top: -35px; left: 50%; transform: translateX(-50%); }
-        .label-bottom { bottom: -35px; left: 50%; transform: translateX(-50%); }
-        .label-left { left: -80px; top: 50%; transform: translateY(-50%); }
-        .label-right { right: -80px; top: 50%; transform: translateY(-50%); }
+        /* 埋め込みラベル設定 */
+        .axis-label {
+            position: absolute; pointer-events: none; z-index: 50; color: #d4af37;
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); 
+            border: 1px solid rgba(212, 175, 55, 0.6);
+            text-transform: uppercase; letter-spacing: 2px; font-size: 10px; white-space: nowrap;
+        }
+        .label-top { top: 0; left: 50%; transform: translateX(-50%); padding: 3px 20px; border-radius: 0 0 10px 10px; border-top: none; }
+        .label-bottom { bottom: 0; left: 50%; transform: translateX(-50%); padding: 3px 20px; border-radius: 10px 10px 0 0; border-bottom: none; }
+        .label-left { left: 0; top: 50%; transform: translateY(-50%); writing-mode: vertical-rl; text-orientation: upright; padding: 15px 3px; border-radius: 0 8px 8px 0; }
+        .label-right { right: 0; top: 50%; transform: translateY(-50%); writing-mode: vertical-rl; text-orientation: upright; padding: 15px 3px; border-radius: 8px 0 0 8px; }
 
-        .bottle { position: absolute; transform: translate(-50%, -50%); text-align: center; width: 80px; z-index: 10; pointer-events: none; }
-        .bottle img { width: 45px; height: auto; }
-        .label { display: inline-block; background: rgba(20,20,20,0.9); color: #d4af37; font-size: 11px; padding: 3px 6px; border-radius: 4px; margin-top: 5px; border: 1px solid rgba(212, 175, 55, 0.5); white-space: nowrap; }
+        .bottle { position: absolute; transform: translate(-50%, -50%); text-align: center; width: 60px; z-index: 10; pointer-events: none; }
+        .bottle img { width: 35px; height: auto; }
+        .label { display: inline-block; background: rgba(20,20,20,0.9); color: #d4af37; font-size: 10px; padding: 2px 5px; border-radius: 4px; margin-top: 4px; border: 1px solid rgba(212, 175, 55, 0.5); white-space: nowrap; }
         
         .drag-target { cursor: move; pointer-events: auto !important; z-index: 100; }
-        .drag-target img { width: 55px; border: 2px dashed #d4af37; border-radius: 50%; padding: 5px; background: rgba(212,175,55,0.2); box-shadow: 0 0 20px rgba(212,175,55,0.4); }
+        .drag-target img { 
+            width: 40px; border: 2px dashed #d4af37; border-radius: 50%; 
+            padding: 3px; background: rgba(212,175,55,0.2); box-shadow: 0 0 20px rgba(212,175,55,0.4); 
+        }
         .benchmark-overlay { opacity: 0.15; filter: grayscale(1); z-index: 1; }
         .benchmark-label { background: transparent !important; color: #aaa !important; border: none !important; font-style: italic; }
     </style>
 </head>
 <body>
-
-<div class='admin-panel'>
-    <strong style="color:#d4af37; display:block; margin-bottom:10px; font-size: 1.2em; letter-spacing: 2px;">【Bar SPEC】DATA INPUT</strong>
-    <div class='input-row'>
-        <select id="in-role" onchange="toggleOtherInput()">
-            <option value="愛好家">愛好家</option>
-            <option value="蒸留家">蒸留家</option>
-            <option value="バーテンダー">バーテンダー</option>
-            <option value="その他">その他</option>
-        </select>
-        <input type="text" id="in-role-other" placeholder="具体的な属性" style="display:none;">
-        <input type="text" id="in-user" placeholder="名前(任意)" onchange="saveUser()">
-        <input type="text" id="in-brand" placeholder="銘柄名(必須)">
-        <input type="number" id="in-abv" value="43" step="0.1" style="width:60px;"> <span style="font-size:12px; color:#d4af37;">%</span>
-    </div>
-    <div class='input-row'>
-        <input type="text" id="in-note" placeholder="Recommend（任意）">
-    </div>
-    
-    <div style="margin-top: 5px;">
-        <div style="font-size:14px; margin-bottom: 5px;">Rich(X): <span id="xl-x" class="coord-display">0</span> Smoky(Y): <span id="xl-y" class="coord-display">0</span></div>
-        <button class="btn-main" onclick="addAndSend()">データを送信</button>
-        <p class="terms-note">
-            ※投稿データはBar SPECの活動（Web・印刷物等）に利用させていただく場合がございます。<br>送信をもって同意とみなします。
-        </p>
-    </div>
-    
-    <div id="status"></div>
-</div>
-
-<div class="matrix-container">
-    <div class="axis-label label-top">SMOKY</div><div class="axis-label label-bottom">DELICATE</div><div class="axis-label label-left">LIGHT</div><div class="axis-label label-right">RICH</div>
-    <div class='matrix-board' id="board" onmousemove="drag(event)" onmouseup="stopDrag()" ontouchmove="touchDrag(event)" ontouchend="stopDrag()">
-        <div style="position:absolute; width:100%; height:1px; top:50%; left:0; background:rgba(0,0,0,0.15); z-index:1;"></div>
-        <div style="position:absolute; height:100%; width:1px; left:50%; top:0; background:rgba(0,0,0,0.15); z-index:1;"></div>
-        
-        <div class="bottle benchmark-overlay" style="left:50%; top:50%;">
-            <img src="JAPANESE/yamazaki.png" onerror="this.src='https://via.placeholder.com/45x90?text=Yamazaki'">
-            <span class='label benchmark-label'>Benchmark</span>
+    <div class='admin-panel'>
+        <strong style="color:#d4af37; display:block; margin-bottom:10px; font-size: 1.2em; letter-spacing: 2px;">【Bar SPEC】DATA INPUT</strong>
+        <div class='input-row'>
+            <select id="in-role" onchange="toggleOtherInput()">
+                <option value="愛好家">愛好家</option>
+                <option value="蒸留家">蒸留家</option>
+                <option value="バーテンダー">バーテンダー</option>
+                <option value="その他">その他</option>
+            </select>
+            <input type="text" id="in-role-other" placeholder="具体的な属性" style="display:none;">
+            <input type="text" id="in-user" placeholder="名前(任意)" onchange="saveUser()">
+            <input type="text" id="in-brand" placeholder="銘柄名(必須)">
+            <input type="number" id="in-abv" value="43" step="0.1" style="width:60px;"> <span style="font-size:12px; color:#d4af37;">%</span>
         </div>
+        <div class='input-row'><input type="text" id="in-note" placeholder="Recommend（任意）"></div>
+        <div style="margin-top: 5px;">
+            <div style="font-size:14px; margin-bottom: 5px;">Rich(X): <span id="xl-x" class="coord-display">0</span> Smoky(Y): <span id="xl-y" class="coord-display">0</span></div>
+            <button class="btn-main" onclick="addAndSend()">データを送信</button>
+            <p class="terms-note">※投稿データはBar SPECの活動に利用させていただく場合がございます。<br>送信をもって同意とみなします。</p>
+        </div>
+        <div id="status"></div>
+    </div>
 
-        <div id="drag-bottle" class="bottle drag-target" style="left:50%; top:50%;" onmousedown="startDrag(event)" ontouchstart="startDrag(event)">
-            <img src="JAPANESE/sample-Bottle.png" onerror="this.src='https://via.placeholder.com/45x90?text=Bottle'">
-            <span class='label' style="background:#d4af37; color:#000; font-weight:bold;">★ 入力銘柄</span>
+    <div class="matrix-container">
+        <div class="axis-label label-top">SMOKY</div><div class="axis-label label-bottom">DELICATE</div>
+        <div class="axis-label label-left">LIGHT</div><div class="axis-label label-right">RICH</div>
+        <div class='matrix-board' id="board" onmousemove="drag(event)" onmouseup="stopDrag()" ontouchmove="touchDrag(event)" ontouchend="stopDrag()">
+            <div style="position:absolute; width:100%; height:1px; top:50%; left:0; background:rgba(0,0,0,0.15); z-index:1;"></div>
+            <div style="position:absolute; height:100%; width:1px; left:50%; top:0; background:rgba(0,0,0,0.15); z-index:1;"></div>
+            <div class="bottle benchmark-overlay" style="left:50%; top:50%;">
+                <img src="JAPANESE/yamazaki.png" onerror="this.src='https://via.placeholder.com/45x90?text=Yamazaki'">
+                <span class='label benchmark-label'>Benchmark</span>
+            </div>
+            <div id="drag-bottle" class="bottle drag-target" style="left:50%; top:50%;" onmousedown="startDrag(event)" ontouchstart="startDrag(event)">
+                <img src="JAPANESE/sample-Bottle.png" onerror="this.src='https://via.placeholder.com/45x90?text=Bottle'">
+                <span class='label' style="background:#d4af37; color:#000; font-weight:bold;">★ 狙う位置</span>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    let isDragging = false, webX = 50, webY = 50, xlRich = 0, xlSmoky = 0;
-    // 最新のGAS URL（蒸留家即時アップ対応版）
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxOyZZfvdOWhTfdjVlNBkDk6axBYHb6RoZU9MSGG8dlo58CU46NUfAjY1BF_-6LZAEFog/exec";
+    <script>
+        let isDragging = false, webX = 50, webY = 50, xlRich = 0, xlSmoky = 0;
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxOyZZfvdOWhTfdjVlNBkDk6axBYHb6RoZU9MSGG8dlo58CU46NUfAjY1BF_-6LZAEFog/exec";
 
-    function toggleOtherInput() {
-        const sel = document.getElementById('in-role'), other = document.getElementById('in-role-other');
-        other.style.display = (sel.value === "その他") ? "inline-block" : "none";
-    }
-    function startDrag(e) { isDragging = true; if(e.cancelable) e.preventDefault(); }
-    function stopDrag() { isDragging = false; }
-    function touchDrag(e) { if(isDragging && e.touches.length > 0) updatePos(e.touches[0].clientX, e.touches[0].clientY); }
-    function drag(e) { updatePos(e.clientX, e.clientY); }
-    function updatePos(clientX, clientY) {
-        if (!isDragging) return;
-        const board = document.getElementById('board'), rect = board.getBoundingClientRect();
-        webX = Math.max(0, Math.min(100, (((clientX - rect.left) / rect.width) * 100)));
-        webY = Math.max(0, Math.min(100, (((clientY - rect.top) / rect.height) * 100)));
-        xlRich = Math.round(webX - 50); xlSmoky = Math.round(50 - webY); 
-        const d = document.getElementById('drag-bottle');
-        d.style.left = webX + '%'; d.style.top = webY + '%';
-        document.getElementById('xl-x').innerText = xlRich; document.getElementById('xl-y').innerText = xlSmoky;
-    }
+        function toggleOtherInput() {
+            const sel = document.getElementById('in-role'), other = document.getElementById('in-role-other');
+            other.style.display = (sel.value === "その他") ? "inline-block" : "none";
+        }
+        function startDrag(e) { isDragging = true; }
+        function stopDrag() { isDragging = false; }
+        function touchDrag(e) { if(isDragging && e.touches.length > 0) updatePos(e.touches[0].clientX, e.touches[0].clientY); }
+        function drag(e) { updatePos(e.clientX, e.clientY); }
+        function updatePos(clientX, clientY) {
+            if (!isDragging) return;
+            const board = document.getElementById('board'), rect = board.getBoundingClientRect();
+            webX = Math.max(0, Math.min(100, (((clientX - rect.left) / rect.width) * 100)));
+            webY = Math.max(0, Math.min(100, (((clientY - rect.top) / rect.height) * 100)));
+            xlRich = Math.round(webX - 50); xlSmoky = Math.round(50 - webY); 
+            const d = document.getElementById('drag-bottle');
+            d.style.left = webX + '%'; d.style.top = webY + '%';
+            document.getElementById('xl-x').innerText = xlRich; document.getElementById('xl-y').innerText = xlSmoky;
+        }
 
-    function addAndSend() {
-        const brand = document.getElementById('in-brand').value;
-        const user = document.getElementById('in-user').value || "匿名";
-        const abv = document.getElementById('in-abv').value;
-        const note = document.getElementById('in-note').value;
-        const statusEl = document.getElementById('status');
-        let role = document.getElementById('in-role').value;
-        if (role === "その他") role = document.getElementById('in-role-other').value || "その他";
-
-        if(!brand) { alert("銘柄名を入力してください"); return; }
-        
-        statusEl.style.color = "#d4af37";
-        statusEl.innerText = "⏳ スプレッドシートへ送信中...";
-
-        const payload = { role, user, brand, abv, rich: xlRich, smoky: xlSmoky, note, image: "" };
-
-        fetch(GAS_URL, {
-            method: "POST",
-            mode: "no-cors", 
-            headers: { "Content-Type": "text/plain" },
-            body: JSON.stringify(payload)
-        }).then(() => {
-            statusEl.style.color = "#00ff00";
-            statusEl.innerText = "✅ 送信完了: " + brand;
-            document.getElementById('in-brand').value = "";
-            document.getElementById('in-note').value = "";
-        }).catch(err => {
-            statusEl.style.color = "#ff4444";
-            statusEl.innerText = "❌ エラーが発生しました";
-        });
-    }
-
-    function saveUser() { localStorage.setItem('spec_user', document.getElementById('in-user').value); }
-    window.onload = () => {
-        const savedUser = localStorage.getItem('spec_user');
-        if(savedUser) document.getElementById('in-user').value = savedUser;
-    }
-</script>
+        function addAndSend() {
+            const brand = document.getElementById('in-brand').value;
+            const user = document.getElementById('in-user').value || "匿名";
+            const abv = document.getElementById('in-abv').value;
+            const note = document.getElementById('in-note').value;
+            const statusEl = document.getElementById('status');
+            let role = document.getElementById('in-role').value;
+            if (role === "その他") role = document.getElementById('in-role-other').value || "その他";
+            if(!brand) { alert("銘柄名を入力してください"); return; }
+            statusEl.style.color = "#d4af37"; statusEl.innerText = "⏳ スプレッドシートへ送信中...";
+            const payload = { role, user, brand, abv, rich: xlRich, smoky: xlSmoky, note, image: "" };
+            fetch(GAS_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(payload) })
+            .then(() => {
+                statusEl.style.color = "#00ff00"; statusEl.innerText = "✅ 送信完了: " + brand;
+                document.getElementById('in-brand').value = ""; document.getElementById('in-note').value = "";
+            }).catch(() => { statusEl.style.color = "#ff4444"; statusEl.innerText = "❌ エラーが発生しました"; });
+        }
+        function saveUser() { localStorage.setItem('spec_user', document.getElementById('in-user').value); }
+        window.onload = () => {
+            const savedUser = localStorage.getItem('spec_user');
+            if(savedUser) document.getElementById('in-user').value = savedUser;
+        }
+    </script>
 </body>
 </html>
