@@ -107,8 +107,9 @@
     </div>
 
     <script>
-        let isDragging = false, webX = 50, webY = 50, xlRich = 0, xlSmoky = 0;
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxOyZZfvdOWhTfdjVlNBkDk6axBYHb6RoZU9MSGG8dlo58CU46NUfAjY1BF_-6LZAEFog/exec";
+       let isDragging = false, webX = 50, webY = 50, xlRich = 0, xlSmoky = 0;
+        // ★新しいGAS URLに書き換え
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxuTnB2LDQvPrscKZhR4opw9oinqVuDYSfjkWi1iSJHQI1HKla3Tvf0_0JxqC_NA63scQ/exec";
 
         function toggleOtherInput() {
             const sel = document.getElementById('in-role'), other = document.getElementById('in-role-other');
@@ -129,56 +130,69 @@
             document.getElementById('xl-x').innerText = xlRich; document.getElementById('xl-y').innerText = xlSmoky;
         }
 
-function addAndSend() {
-            const brandInput = document.getElementById('in-brand'); // これが必要
-            const brand = brandInput.value;
+        async function addAndSend() {
+            const brandInput = document.getElementById('in-brand');
+            const brand = brandInput.value || "山崎"; // 空なら山崎にする（ネット先行版仕様）
             const user = document.getElementById('in-user').value || "匿名";
             const abv = document.getElementById('in-abv').value;
-            const noteInput = document.getElementById('in-note'); // これも取得
+            const noteInput = document.getElementById('in-note'); 
             const note = noteInput.value;
             const statusEl = document.getElementById('status');
             let role = document.getElementById('in-role').value;
             if (role === "その他") role = document.getElementById('in-role-other').value || "その他";
             
-            if(!brand) { alert("銘柄名を入力してください"); return; }
-            statusEl.style.color = "#d4af37"; statusEl.innerText = "⏳ スプレッドシートへ送信中...";
+            statusEl.style.color = "#d4af37"; statusEl.innerText = "⏳ データを送信中...";
             
-            const payload = { role, user, brand, abv, rich: xlRich, smoky: xlSmoky, note, image: "" };
+            // ★スプレッドシートの項目（H列:コメント）に合わせてデータを構築
+            const payload = { 
+                role: role,     // B列: 属性
+                user: user,     // C列: 入力者
+                brand: brand,   // D列: 銘柄名
+                abv: abv,       // E列: 度数
+                rich: xlRich,   // F列: Rich
+                smoky: xlSmoky, // G列: Smoky
+                comment: note,  // H列: コメント（noteを入力）
+                image: ""       // I列: 画像
+            };
             
-            fetch(GAS_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(payload) })
-            .then(() => {
-                statusEl.style.color = "#00ff00"; statusEl.innerText = "✅ 送信完了: " + brand;
+            try {
+                await fetch(GAS_URL, { 
+                    method: "POST", 
+                    mode: "no-cors", 
+                    headers: { "Content-Type": "text/plain" }, 
+                    body: JSON.stringify(payload) 
+                });
+
+                statusEl.style.color = "#00ff00"; 
+                statusEl.innerText = "✅ 送信完了！承認をお待ちください。";
                 
-                // --- リセット処理 ---
+                // リセット処理
                 brandInput.value = ""; 
                 noteInput.value = ""; 
-                
                 webX = 50; webY = 50; xlRich = 0; xlSmoky = 0;
-                const d = document.getElementById('drag-bottle');
-                d.style.left = '50%';
-                d.style.top = '50%';
+                document.getElementById('drag-bottle').style.left = '50%';
+                document.getElementById('drag-bottle').style.top = '50%';
                 document.getElementById('xl-x').innerText = "0";
                 document.getElementById('xl-y').innerText = "0";
-                
-                // ラベルを初期状態に戻す
                 document.getElementById('dynamic-label').innerText = "★入力Bottle";
-            }).catch(() => { statusEl.style.color = "#ff4444"; statusEl.innerText = "❌ エラーが発生しました"; });
+
+            } catch (e) {
+                statusEl.style.color = "#ff4444"; 
+                statusEl.innerText = "❌ 送信に失敗しました";
+            }
         }
+
         function saveUser() { localStorage.setItem('spec_user', document.getElementById('in-user').value); }
-window.onload = () => {
+
+        window.onload = () => {
             const savedUser = localStorage.getItem('spec_user');
             if(savedUser) document.getElementById('in-user').value = savedUser;
 
-            // --- 追加：入力連動処理 ---
             const brandInput = document.getElementById('in-brand');
             const dynamicLabel = document.getElementById('dynamic-label');
 
             brandInput.addEventListener('input', () => {
-                if (brandInput.value.trim() !== "") {
-                    dynamicLabel.innerText = brandInput.value;
-                } else {
-                    dynamicLabel.innerText = "★入力Bottle";
-                }
+                dynamicLabel.innerText = brandInput.value.trim() !== "" ? brandInput.value : "★入力Bottle";
             });
         }
     </script>
